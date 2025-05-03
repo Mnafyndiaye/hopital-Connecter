@@ -1,0 +1,86 @@
+body, html {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Segoe UI', sans-serif;
+    overflow: hidden;
+  }
+  
+  .login-page {
+    height: 100vh;
+    background-color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .logo-title {
+    text-align: center;
+    font-size: 28px;
+    margin-top: 20px;
+    font-weight: bold;
+    letter-spacing: 1px;
+  }
+  
+  .login-container {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .login-form {
+    background: #b2f0ec;
+    border-radius: 25px;
+    box-shadow: 3px 3px 8px #ccc;
+    padding: 30px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    width: 300px;
+  }
+  
+  .input-group {
+    display: flex;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    padding: 5px;
+  }
+  
+  .input-group i {
+    margin-right: 10px;
+  }
+  
+  .input-group input,
+  .input-group select {
+    flex: 1;
+    border: none;
+    background: transparent;
+    outline: none;
+    font-size: 16px;
+  }
+  
+  .login-button {
+    background-color: #00b8a9;
+    border: none;
+    padding: 10px;
+    border-radius: 10px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s;
+  }
+  
+  .login-button:hover {
+    background-color: #008c7e;
+  }
+  
+  .login-illustration {
+    margin-left: 300px;
+  }
+  
+  .login-illustration img {
+    max-width: 450px;
+    height: auto;
+  }
+  
