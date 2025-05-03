@@ -4,6 +4,7 @@ import Login from './pages/Login';
 import AssistantDashboard from './pages/AssistantDashboard';
 import LoginPatient from './pages/LoginPatient';
 import PatientDashboard from './pages/PatientDashboard';
+import MedecinDashboard from './pages/MedecinDashboard';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
 
@@ -16,7 +17,7 @@ function App() {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/assistant" element={<AssistantDashboard />} />
         <Route path="/patient" element={<PatientDashboard />} />
-        {/*<Route path="/medecin" element={<MedecinDashboard />} /> */}
+        <Route path="/medecin" element={<MedecinDashboard />} /> 
       </Routes>
     </Router>
   );

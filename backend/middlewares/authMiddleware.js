@@ -14,13 +14,14 @@ function authenticate(req, res, next) {
   }
 }
 
-function authorizeRole(role) {
+function authorizeRole(...roles) {
   return (req, res, next) => {
-    if (req.user.role !== role) {
+    if (!roles.includes(req.user.role)) {
       return res.status(403).json({ error: 'Accès interdit' });
     }
     next();
   };
 }
+
 
 module.exports = { authenticate, authorizeRole };

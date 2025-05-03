@@ -3,6 +3,7 @@ import axios from 'axios';
 
 const AssistantDashboard = () => {
   const [patients, setPatients] = useState([]);
+  const [medecins, setMedecins] = useState([]);
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -15,8 +16,11 @@ const AssistantDashboard = () => {
     password: '',
   });
 
+  const [assignData, setAssignData] = useState({}); // { patientId: medecinId }
+
   useEffect(() => {
     fetchPatients();
+    fetchMedecins();
   }, []);
 
   const fetchPatients = async () => {
@@ -28,6 +32,18 @@ const AssistantDashboard = () => {
     }
   };
 
+  const fetchMedecins = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const res = await axios.get('/api/medecins', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setMedecins(res.data);
+    } catch (err) {
+      console.error('Erreur chargement médecins :', err);
+    }
+  };
+
   const handleChange = (e) => {
     setFormData(prev => ({
       ...prev,
@@ -35,15 +51,39 @@ const AssistantDashboard = () => {
     }));
   };
 
+  const handleAssignChange = (patientId, medecinId) => {
+    setAssignData(prev => ({
+      ...prev,
+      [patientId]: medecinId
+    }));
+  };
+
+  const handleAssign = async (patientId) => {
+    try {
+      const medecinId = assignData[patientId];
+      if (!medecinId) return;
+
+      await axios.post(`/api/assistants/assign-medecin`, {
+        patientId,
+        medecinId
+      });
+
+      alert('Médecin assigné avec succès');
+    } catch (err) {
+      alert('Erreur assignation : ' + err.response?.data?.error || 'Inconnue');
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        const assistantId = localStorage.getItem('assistantId');
+      const assistantId = localStorage.getItem('assistantId');
 
-        await axios.post('/api/patients', {
-          ...formData,
-          assistantId: parseInt(assistantId, 10)
-        });
+      await axios.post('/api/patients', {
+        ...formData,
+        assistantId: parseInt(assistantId, 10)
+      });
+
       setFormData({
         firstName: '',
         lastName: '',
@@ -55,6 +95,7 @@ const AssistantDashboard = () => {
         bloodType: '',
         password: '',
       });
+
       fetchPatients();
     } catch (err) {
       alert('Erreur : ' + err.response?.data?.error || 'Inconnue');
@@ -69,11 +110,10 @@ const AssistantDashboard = () => {
         <input name="lastName" value={formData.lastName} onChange={handleChange} placeholder="Nom" required />
         <input name="dateOfBirth" type="date" value={formData.dateOfBirth} onChange={handleChange} required />
         <select name="gender" value={formData.gender} onChange={handleChange} required>
-          <option value="">Sélectionner le genre</option>  {/* <- valeur vide par défaut */}
+          <option value="">Sélectionner le genre</option>
           <option value="homme">Homme</option>
           <option value="femme">Femme</option>
         </select>
-
         <input name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} placeholder="Téléphone" required />
         <input name="email" value={formData.email} onChange={handleChange} placeholder="Email" />
         <input name="address" value={formData.address} onChange={handleChange} placeholder="Adresse" />
@@ -87,6 +127,20 @@ const AssistantDashboard = () => {
         {patients.map((patient) => (
           <li key={patient.id}>
             {patient.firstName} {patient.lastName} - {patient.email}
+            <br />
+            <label>Assigner un médecin :</label>
+            <select
+              value={assignData[patient.id] || ''}
+              onChange={(e) => handleAssignChange(patient.id, e.target.value)}
+            >
+              <option value="">Sélectionner</option>
+              {medecins.map((med) => (
+                <option key={med.id} value={med.id}>
+                  {med.firstName} {med.lastName}
+                </option>
+              ))}
+            </select>
+            <button onClick={() => handleAssign(patient.id)}>Assigner</button>
           </li>
         ))}
       </ul>

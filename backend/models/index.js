@@ -8,7 +8,8 @@ const db = {};
 fs.readdirSync(__dirname)
   .filter(file => file !== 'index.js' && file.endsWith('.js'))
   .forEach(file => {
-    const model = require(path.join(__dirname, file))(sequelize, Sequelize.DataTypes);
+    console.log("Chargement du modèle :", file);
+    const model =  (require(path.join(__dirname, file)))(sequelize, Sequelize.DataTypes);
     db[model.name] = model;
   });
 

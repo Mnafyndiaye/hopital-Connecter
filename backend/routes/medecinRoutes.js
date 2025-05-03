@@ -35,10 +35,10 @@ router.post('/', authenticate, authorizeRole('admin'), async (req, res) => {
   }
 });
 
-// GET /api/medecins — admin uniquement
-router.get('/', authenticate, authorizeRole('admin'), async (req, res) => {
-    const medecins = await Medecin.findAll({ include: ['User'] });
-    res.json(medecins);
-  });
+// GET /api/medecins — admin et assistant uniquement
+router.get('/', authenticate, authorizeRole('admin', 'assistant'), async (req, res) => {
+  const medecins = await Medecin.findAll({ include: ['User'] });
+  res.json(medecins);
+});
   
 module.exports = router;
