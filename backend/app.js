@@ -11,6 +11,7 @@ app.use('/api/patients', require('./routes/patientRoutes.js'));
 app.use('/api/medecins', require('./routes/medecinRoutes.js'));
 app.use('/api/assistants', require('./routes/assistantRoutes.js'));
 app.use('/api/auth', require('./routes/authRoutes'));
-
+app.use('/api/patient', require('./routes/patientDashboard'));
+app.use('/api/medical', require('./routes/medicalRecordRoutes'));
 
 module.exports = app;

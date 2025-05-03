@@ -1,5 +1,6 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const bcrypt = require('bcrypt');
 
 const Patient = sequelize.define('Patient', {
   firstName: {
@@ -51,6 +52,14 @@ const Patient = sequelize.define('Patient', {
     }
   },
 });
+
+Patient.associate = (models) => {
+    Patient.belongsTo(models.Assistant, {
+      foreignKey: 'assistantId',
+      as: 'assistant',
+    });
+  };
+  
 
 // Hash du mot de passe avant la création
 Patient.beforeCreate(async (patient, options) => {

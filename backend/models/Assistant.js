@@ -14,4 +14,11 @@ const Assistant = sequelize.define('Assistant', {
 Assistant.belongsTo(User, { foreignKey: 'userId' });
 User.hasOne(Assistant, { foreignKey: 'userId' });
 
+Assistant.associate = (models) => {
+  Assistant.hasMany(models.Patient, {
+    foreignKey: 'assistantId',
+    as: 'patients',
+  });
+};
+
 module.exports = Assistant;

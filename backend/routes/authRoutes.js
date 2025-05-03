@@ -4,6 +4,8 @@ const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const Assistant = require('../models/Assistant'); // ✅ Ajout
+const Patient = require('../models/Patient'); // ✅ Assure-toi que ce modèle est bien importé
+const Medecin = require('../models/Medecin'); // ✅ Assure-toi que ce modèle est bien importé
 const { authenticate, authorizeRole } = require('../middlewares/authMiddleware');
 
 // ✅ Créer un utilisateur (seulement admin)
@@ -73,6 +75,42 @@ router.post('/login', async (req, res) => {
         id: user.id,
         username: user.username,
         role: user.role
+      }
+    });
+  } catch (err) {
+    res.status(500).json({ message: 'Erreur serveur' });
+  }
+});
+
+
+// ✅ Connexion pour les patients (téléphone + mot de passe)
+router.post('/login-patient', async (req, res) => {
+  const { phoneNumber, password } = req.body;
+
+  try {
+    const patient = await Patient.findOne({ where: { phoneNumber } });
+
+    if (!patient) {
+      return res.status(404).json({ message: 'Numéro de téléphone incorrect' });
+    }
+
+    const isMatch = await bcrypt.compare(password, patient.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: 'Mot de passe incorrect' });
+    }
+
+    const token = jwt.sign(
+      { patientId: patient.id },
+      process.env.JWT_SECRET || 'defaultSecret',
+      { expiresIn: '1d' }
+    );
+
+    res.json({
+      token,
+      patient: {
+        id: patient.id,
+        fullName: `${patient.firstName} ${patient.lastName}`,
+        phoneNumber: patient.phoneNumber
       }
     });
   } catch (err) {
