@@ -25,12 +25,16 @@ const AssistantDashboard = () => {
 
   const fetchPatients = async () => {
     try {
-      const res = await axios.get('/api/patients');
+      const token = localStorage.getItem('token');
+      const res = await axios.get('/api/patients', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setPatients(res.data);
     } catch (err) {
       console.error('Erreur lors du chargement des patients :', err);
     }
   };
+  
 
   const fetchMedecins = async () => {
     try {
@@ -39,6 +43,7 @@ const AssistantDashboard = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setMedecins(res.data);
+      console.log('Médecins chargés :', res.data);
     } catch (err) {
       console.error('Erreur chargement médecins :', err);
     }
@@ -62,18 +67,22 @@ const AssistantDashboard = () => {
     try {
       const medecinId = assignData[patientId];
       if (!medecinId) return;
-
+  
+      const token = localStorage.getItem('token');
+  
       await axios.post(`/api/assistants/assign-medecin`, {
         patientId,
         medecinId
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
       });
-
+  
       alert('Médecin assigné avec succès');
     } catch (err) {
-      alert('Erreur assignation : ' + err.response?.data?.error || 'Inconnue');
+      alert('Erreur assignation : ' + (err.response?.data?.error || 'Inconnue'));
     }
   };
-
+  
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -135,8 +144,8 @@ const AssistantDashboard = () => {
             >
               <option value="">Sélectionner</option>
               {medecins.map((med) => (
-                <option key={med.id} value={med.id}>
-                  {med.firstName} {med.lastName}
+                <option key={med.id} value={med.User.id}>
+                  {med.prenom} {med.nom}
                 </option>
               ))}
             </select>

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Patient = require('../models/Patient');
+const {Patient} = require('../models');
 const bcrypt = require('bcrypt');
 const authenticatePatient = require('../middlewares/authenticatePatient');
 const Assistant = require('../models/Assistant'); // Ajout de l'importation du modèle Assistant 

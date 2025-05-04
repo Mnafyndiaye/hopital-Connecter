@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const Patient = require('../models/Patient');
+const {Patient} = require('../models');
 const authenticatePatient = require('../middlewares/authenticatePatient');
 
 // 👤 Récupérer les infos du patient connecté

@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const User = require('../models/User');
-const Medecin = require('../models/Medecin');
+const {User, Medecin, PatientMedecin, Patient} = require('../models');
 const { authenticate, authorizeRole } = require('../middlewares/authMiddleware');
 const bcrypt = require('bcrypt');
 
@@ -39,6 +38,25 @@ router.post('/', authenticate, authorizeRole('admin'), async (req, res) => {
 router.get('/', authenticate, authorizeRole('admin', 'assistant'), async (req, res) => {
   const medecins = await Medecin.findAll({ include: ['User'] });
   res.json(medecins);
+});
+
+// GET /api/medecin/patients
+router.get('/patients', authenticate, authorizeRole('medecin'), async (req, res) => {
+  try {
+    const medecinId = req.user.userId; // C’est l’id du user (User.id)
+
+    const assignments = await PatientMedecin.findAll({
+      where: { medecinId },
+      include: [{ model: Patient, as: 'patient' }],
+    });
+
+    const patients = assignments.map(a => a.patient);
+
+    res.json(patients);
+  } catch (err) {
+    console.error('Erreur récupération patients médecin :', err);
+    res.status(500).json({ error: 'Erreur serveur' });
+  }
 });
   
 module.exports = router;
