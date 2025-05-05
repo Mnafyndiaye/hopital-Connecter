@@ -5,25 +5,43 @@ const { Patient, Consultation, Prescription, SignesVitaux, MedicalRecord } = req
 
 // ✅ Voir le dossier médical complet d’un patient
 router.get('/patient/:patientId', authenticate, authorizeRole('medecin'), async (req, res) => {
-  try {
-    const { patientId } = req.params;
-
-    const consultations = await Consultation.findAll({
-      where: { patientId },
-      include: [Prescription, SignesVitaux]
-    });
-
-    const medicalRecords = await MedicalRecord.findAll({
-      where: { patientId }
-    });
-
-    res.json({ consultations, medicalRecords });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Erreur lors du chargement du dossier médical.' });
-  }
-});
-
+    try {
+      const { patientId } = req.params;
+  
+      // Récupérer les infos personnelles du patient
+      const patient = await Patient.findByPk(patientId, {
+        attributes: ['id', 'firstName', 'lastName', 'gender', 'dateOfBirth', 'bloodType']
+      });
+  
+      if (!patient) {
+        return res.status(404).json({ error: 'Patient non trouvé.' });
+      }
+  
+      const consultations = await Consultation.findAll({
+        where: { patientId },
+        include: [
+          { model: Prescription, as: 'prescriptions' },
+          { model: SignesVitaux, as: 'signesVitaux' }
+        ]
+      });
+      
+  
+      const medicalRecords = await MedicalRecord.findAll({
+        where: { patientId }
+      });
+  
+      // On retourne maintenant les infos personnelles aussi
+      res.json({ 
+        patient, 
+        consultations, 
+        medicalRecords 
+      });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Erreur lors du chargement du dossier médical.' });
+    }
+  });
+  
 // ✅ Ajouter une consultation avec prescriptions et signes vitaux
 router.post('/consultation', authenticate, authorizeRole('medecin'), async (req, res) => {
   try {
@@ -43,8 +61,7 @@ router.post('/consultation', authenticate, authorizeRole('medecin'), async (req,
           consultationId: consultation.id,
           medication: p.medication,
           dosage: p.dosage,
-          frequency: p.frequency,
-          duration: p.duration
+          instructions: p.instructions,
         });
       }
     }
@@ -54,9 +71,9 @@ router.post('/consultation', authenticate, authorizeRole('medecin'), async (req,
       await SignesVitaux.create({
         consultationId: consultation.id,
         temperature: signesVitaux.temperature,
-        bloodPressure: signesVitaux.bloodPressure,
-        heartRate: signesVitaux.heartRate,
-        respiratoryRate: signesVitaux.respiratoryRate
+        tension: signesVitaux.tension,
+        poids: signesVitaux.poids,
+        frequenceCardiaque: signesVitaux.frequenceCardiaque
       });
     }
 
