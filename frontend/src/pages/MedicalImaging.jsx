@@ -5,6 +5,8 @@ import * as cornerstoneTools from 'cornerstone-tools';
 import * as cornerstoneMath from 'cornerstone-math';
 import * as cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
 import * as dicomParser from 'dicom-parser';
+import Hammer from 'hammerjs';
+import './MedicalImaging.css'; 
 
 const MedicalImaging = () => {
   const viewerRef = useRef(null);
@@ -14,16 +16,20 @@ const MedicalImaging = () => {
   const [uploadedFile, setUploadedFile] = useState(null);
   const [zoom, setZoom] = useState(1);
 
+  // Initialisation de cornerstone et chargement des études
   useEffect(() => {
     cornerstoneWADOImageLoader.external.cornerstone = cornerstone;
     cornerstoneWADOImageLoader.external.dicomParser = dicomParser;
     cornerstoneTools.external.cornerstone = cornerstone;
     cornerstoneTools.external.cornerstoneMath = cornerstoneMath;
+    cornerstoneTools.external.Hammer = Hammer;
 
-    cornerstoneTools.init();
+    cornerstoneTools.init({ showSVGCursors: true });
     cornerstoneWADOImageLoader.configure({ useWebWorkers: true });
 
-    cornerstone.enable(viewerRef.current);
+    if (viewerRef.current) {
+      cornerstone.enable(viewerRef.current);
+    }
 
     axios
       .get('http://localhost:5000/api/orthanc/studies')
@@ -31,11 +37,10 @@ const MedicalImaging = () => {
       .catch((err) => console.error(err));
   }, []);
 
+  // Chargement d'une instance DICOM
   const loadInstance = async (studyId) => {
     try {
-      const res = await axios.get(
-        `http://localhost:5000/api/orthanc/studies/${studyId}/instances`
-      );
+      const res = await axios.get(`http://localhost:5000/api/orthanc/studies/${studyId}/instances`);
       const instance = res.data[0];
       if (!instance) return;
 
@@ -54,13 +59,17 @@ const MedicalImaging = () => {
     }
   };
 
+  // Gestion du fichier local
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
-    const buffer = await file.slice(0, 132).arrayBuffer();
-    const view = new DataView(buffer);
-    const isDicom =
-      String.fromCharCode(...[128, 129, 130, 131].map((i) => view.getUint8(i))) === 'DICM';
-    if (!isDicom) return alert('Fichier invalide');
+    if (!file) return;
+
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      dicomParser.parseDicom(new DataView(arrayBuffer));
+    } catch {
+      return alert('Fichier invalide DICOM');
+    }
 
     setUploadedFile(file);
 
@@ -69,6 +78,7 @@ const MedicalImaging = () => {
     cornerstone.displayImage(viewerRef.current, image);
   };
 
+  // Sauvegarde du fichier dans Orthanc
   const saveToOrthanc = async () => {
     const formData = new FormData();
     formData.append('dicom', uploadedFile);
@@ -76,8 +86,18 @@ const MedicalImaging = () => {
     alert('Fichier enregistré');
   };
 
+  // Zoom
+  const updateZoom = (newZoom) => {
+    if (!viewerRef.current) return;
+    const viewport = cornerstone.getViewport(viewerRef.current);
+    viewport.scale = newZoom;
+    cornerstone.setViewport(viewerRef.current, viewport);
+    setZoom(newZoom);
+  };
+
   return (
-    <div className="container" style={{ display: 'flex', gap: '2rem' }}>
+    <div className="container" style={{ display: 'flex', gap: '2rem', height: '100vh', overflowY: 'auto', padding: '20px' }}>
+      {/* Liste des études */}
       <div className="left-section">
         <h2>Études</h2>
         <table>
@@ -105,6 +125,7 @@ const MedicalImaging = () => {
         {!fullList && <button onClick={() => setFullList(true)}>Voir toute la liste</button>}
       </div>
 
+      {/* Visualiseur */}
       <div className="right-section">
         <h2>Visualiseur</h2>
         <div
@@ -112,40 +133,21 @@ const MedicalImaging = () => {
           style={{ width: 512, height: 512, background: 'black', marginBottom: '1rem' }}
         />
         <div>
-          <button
-            onClick={() =>
-              setZoom((z) => {
-                const newZoom = z + 0.2;
-                cornerstone.setViewport(viewerRef.current, { scale: newZoom });
-                return newZoom;
-              })
-            }
-          >
-            +
-          </button>
-          <button
-            onClick={() =>
-              setZoom((z) => {
-                const newZoom = Math.max(0.2, z - 0.2);
-                cornerstone.setViewport(viewerRef.current, { scale: newZoom });
-                return newZoom;
-              })
-            }
-          >
-            -
-          </button>
+          <button onClick={() => updateZoom(zoom + 0.2)}>+</button>
+          <button onClick={() => updateZoom(Math.max(0.2, zoom - 0.2))}>-</button>
           <button
             onClick={() => {
-              setZoom(1);
-              cornerstone.setViewport(viewerRef.current, {
-                scale: 1,
-                translation: { x: 0, y: 0 },
-              });
+              updateZoom(1);
+              const viewport = cornerstone.getViewport(viewerRef.current);
+              viewport.translation = { x: 0, y: 0 };
+              cornerstone.setViewport(viewerRef.current, viewport);
             }}
           >
             Réinitialiser
           </button>
         </div>
+
+        {/* Actions sur le fichier */}
         <div style={{ marginTop: '1rem' }}>
           <input type="file" onChange={handleFileChange} />
           <button onClick={saveToOrthanc} disabled={!uploadedFile}>
