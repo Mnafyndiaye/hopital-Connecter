@@ -8,6 +8,7 @@ function authenticatePatient(req, res, next) {
   try {
     const payload = jwt.verify(token, process.env.JWT_SECRET || 'defaultSecret');
     req.patient = { id: payload.patientId }; // 💡 Stocké dans req.patient
+    console.log("Patient authentifié avec ID :", req.patient?.id);
     next();
   } catch {
     res.status(403).json({ error: 'Token invalide' });

@@ -3,6 +3,7 @@ import axios from 'axios';
 
 const PatientDashboard = () => {
   const [patient, setPatient] = useState(null);
+  const [consultations, setConsultations] = useState([]);
   const [medicalRecords, setMedicalRecords] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -18,17 +19,17 @@ const PatientDashboard = () => {
         return;
       }
 
-      // Récupérer les informations personnelles
       const patientRes = await axios.get('http://localhost:5000/api/patient/me', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
       setPatient(patientRes.data);
 
-      // Récupérer le dossier médical
       const recordRes = await axios.get('http://localhost:5000/api/patient/medical-records', {
-        headers: { Authorization: `Bearer ${token}` }
+        headers: { Authorization: `Bearer ${token}` },
       });
-      setMedicalRecords(recordRes.data);
+
+      setConsultations(recordRes.data.consultations || []);
+      setMedicalRecords(recordRes.data.medicalRecords || []);
 
       setLoading(false);
     } catch (err) {
@@ -40,7 +41,7 @@ const PatientDashboard = () => {
   if (loading) return <p>Chargement...</p>;
 
   return (
-    <div>
+    <div style={{ height: '100vh', overflowY: 'auto', padding: '20px' }}>
       <h2>Bienvenue sur votre espace patient</h2>
 
       {/* Infos personnelles */}
@@ -58,12 +59,52 @@ const PatientDashboard = () => {
         <p>Impossible de charger vos informations.</p>
       )}
 
-      {/* Dossier médical */}
-      <h3>Dossier médical</h3>
+      {/* Consultations */}
+      <h3>Consultations</h3>
+      {consultations.length > 0 ? (
+        <ul>
+          {consultations.map(consultation => (
+            <li key={consultation.id} style={{ border: '1px solid #ccc', marginBottom: '20px', padding: '10px' }}>
+              <p><strong>Date :</strong> {consultation.date}</p>
+              <p><strong>Notes :</strong> {consultation.notes}</p>
+
+              {consultation.signesVitaux && (
+                <div>
+                  <h5>Signes Vitaux</h5>
+                  <ul>
+                    <li><strong>Température :</strong> {consultation.signesVitaux.temperature}</li>
+                    <li><strong>Tension :</strong> {consultation.signesVitaux.tension}</li>
+                    <li><strong>Poids :</strong> {consultation.signesVitaux.poids}</li>
+                    <li><strong>Fréquence cardiaque :</strong> {consultation.signesVitaux.frequenceCardiaque}</li>
+                  </ul>
+                </div>
+              )}
+
+              {consultation.prescriptions?.length > 0 && (
+                <div>
+                  <h5>Prescriptions</h5>
+                  <ul>
+                    {consultation.prescriptions.map(p => (
+                      <li key={p.id}>
+                        {p.medication} - {p.dosage} - {p.instructions}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>Aucune consultation trouvée.</p>
+      )}
+
+      {/* Autres dossiers médicaux */}
+      <h3>Autres Dossiers Médicaux</h3>
       {medicalRecords.length > 0 ? (
         <ul>
           {medicalRecords.map(record => (
-            <li key={record.id} style={{ border: '1px solid #ccc', marginBottom: '10px', padding: '10px' }}>
+            <li key={record.id} style={{ marginBottom: '20px' }}>
               <p><strong>Date :</strong> {record.date}</p>
               <p><strong>Type :</strong> {record.type}</p>
               <p><strong>Description :</strong> {record.description}</p>
@@ -76,23 +117,11 @@ const PatientDashboard = () => {
                   </a>
                 </p>
               )}
-
-              {record.orthancId && (
-                <p>
-                  <a
-                    href={`http://localhost:8042/web-viewer.html?study=${record.orthancId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    Voir l'imagerie DICOM
-                  </a>
-                </p>
-              )}
             </li>
           ))}
         </ul>
       ) : (
-        <p>Aucun enregistrement médical trouvé.</p>
+        <p>Aucun autre dossier médical trouvé.</p>
       )}
     </div>
   );

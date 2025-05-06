@@ -30,7 +30,6 @@ router.get('/patient/:patientId', authenticate, authorizeRole('medecin'), async 
         where: { patientId }
       });
   
-      // On retourne maintenant les infos personnelles aussi
       res.json({ 
         patient, 
         consultations, 
