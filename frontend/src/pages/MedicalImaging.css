@@ -1,0 +1,159 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f5f5f5;
+}
+
+header {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+h1 {
+    color: #333;
+}
+
+.container {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.left-section, .right-section {
+    width: 48%;
+}
+
+h2 {
+    color: #333;
+    margin-bottom: 15px;
+}
+
+.studies-table {
+    width: 100%;
+    background-color: white;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.full-list {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th, td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+tr:hover {
+    background-color: #f9f9f9;
+    cursor: pointer;
+}
+
+.right-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.zoom-controls {
+    margin: 10px 0;
+}
+
+.zoom-controls button {
+    padding: 8px 15px;
+    font-size: 18px;
+    margin: 0 5px;
+    background-color: #666;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.zoom-controls button:hover {
+    background-color: #555;
+}
+
+.zoom-controls button:nth-child(3) {
+    background-color: #ff4444;
+}
+
+.zoom-controls button:nth-child(3):hover {
+    background-color: #cc0000;
+}
+
+.upload-controls {
+    margin: 10px 0;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
+.custom-file-button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.upload-controls button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#preview-button {
+    background-color: #666;
+    color: white;
+}
+
+#save-button {
+    background-color: #008CBA;
+    color: white;
+}
+
+#save-button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+#show-full-list-button {
+    display: block;
+    margin: 10px auto;
+    padding: 10px 20px;
+    background-color: #666;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+#show-full-list-button:hover {
+    background-color: #555;
+}
+
+#viewer button:last-child {
+    padding: 10px 20px;
+    background-color: #008CBA;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
