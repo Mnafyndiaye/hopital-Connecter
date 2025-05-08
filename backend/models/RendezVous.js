@@ -14,8 +14,8 @@ module.exports = (sequelize, DataTypes) => {
         allowNull: false
       },
       statut: {
-        type: DataTypes.ENUM('planifié', 'annulé', 'reprogrammé', 'terminé'),
-        defaultValue: 'planifié'
+        type: DataTypes.ENUM('en attente','planifié', 'annulé', 'reprogrammé', 'terminé'),
+        defaultValue: 'en attente',
       }
     });
   

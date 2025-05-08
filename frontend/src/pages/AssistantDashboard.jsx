@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const AssistantDashboard = () => {
   const [patients, setPatients] = useState([]);
@@ -15,7 +16,7 @@ const AssistantDashboard = () => {
     bloodType: '',
     password: '',
   });
-
+  const navigate = useNavigate();
   const [assignData, setAssignData] = useState({}); // { patientId: medecinId }
 
   useEffect(() => {
@@ -112,7 +113,17 @@ const AssistantDashboard = () => {
   };
 
   return (
-    <div>
+    <div style={{ height: '100vh', overflowY: 'auto', padding: '20px' }}>
+      <h1>Tableau de bord de l'assistant</h1>
+      <button onClick={() => navigate('/assistant/appointments')} style={{
+          marginTop: '10px',
+          padding: '10px 20px',
+          backgroundColor: '#2563eb',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer'
+      }}> Voir mes rendez-vous </button>
       <h2>Créer un patient</h2>
       <form onSubmit={handleSubmit}>
         <input name="firstName" value={formData.firstName} onChange={handleChange} placeholder="Prénom" required />
@@ -153,6 +164,7 @@ const AssistantDashboard = () => {
           </li>
         ))}
       </ul>
+      
     </div>
   );
 };

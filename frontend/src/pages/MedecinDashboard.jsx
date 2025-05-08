@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const MedecinDashboard = () => {
   const [patients, setPatients] = useState([]);
@@ -21,10 +22,19 @@ const MedecinDashboard = () => {
       console.error("Erreur récupération patients :", error.response?.data || error.message);
     }
   };
-
+  const navigate = useNavigate();
   return (
     <div>
       <h2>Tableau de bord du Médecin</h2>
+      <button onClick={() => navigate('/medecin/appointments')} style={{
+          marginTop: '10px',
+          padding: '10px 20px',
+          backgroundColor: '#2563eb',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer'
+      }}> Voir mes rendez-vous </button>
       <h3>Liste des patients</h3>
       {patients.length === 0 ? (
         <p>Aucun patient disponible</p>

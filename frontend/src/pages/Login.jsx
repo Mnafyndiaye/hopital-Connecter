@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Login.css';
+import '../styles/Login.css'; // Le fichier CSS externe
 
 function Login() {
   const [formData, setFormData] = useState({ username: '', password: '', role: '' });
@@ -81,6 +81,7 @@ function Login() {
           <button type="submit" className="login-button">
             Se Connecter
           </button>
+          
         </form>
         <div className="login-illustration">
           <img src="/images/illustration-medecin.svg" alt="Illustration médicale" />

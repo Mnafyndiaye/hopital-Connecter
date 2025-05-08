@@ -6,7 +6,7 @@ import * as cornerstoneMath from 'cornerstone-math';
 import * as cornerstoneWADOImageLoader from 'cornerstone-wado-image-loader';
 import * as dicomParser from 'dicom-parser';
 import Hammer from 'hammerjs';
-import './MedicalImaging.css'; 
+import '../styles/MedicalImaging.css'; // Assurez-vous d'avoir ce fichier CSS pour le style
 
 const MedicalImaging = () => {
   const viewerRef = useRef(null);

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import './Login.css';
+import '../styles/Login.css'; // Le fichier CSS externe
 
 function LoginPatient() {
   const [formData, setFormData] = useState({ phoneNumber: '', password: '' });
@@ -12,7 +12,7 @@ function LoginPatient() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const res = await fetch('/api/auth/login-patient', {
+      const res = await fetch(`/api/auth/login-patient/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),
@@ -24,7 +24,7 @@ function LoginPatient() {
       localStorage.setItem('token', data.token);
       localStorage.setItem('patient', JSON.stringify(data.patient));
 
-      navigate('/patient'); // Redirection vers la page patient
+      navigate('/patient/'); // Redirection vers la page patient
     } catch (err) {
       alert('Erreur de connexion : ' + err.message);
     }

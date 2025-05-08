@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
 const PatientDashboard = () => {
   const [patient, setPatient] = useState(null);
   const [consultations, setConsultations] = useState([]);
   const [medicalRecords, setMedicalRecords] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPatientData();
@@ -58,7 +60,15 @@ const PatientDashboard = () => {
       ) : (
         <p>Impossible de charger vos informations.</p>
       )}
-
+      <button onClick={() => navigate('/patient/appointments')} style={{
+          marginTop: '10px',
+          padding: '10px 20px',
+          backgroundColor: '#2563eb',
+          color: 'white',
+          border: 'none',
+          borderRadius: '8px',
+          cursor: 'pointer'
+      }}> Voir mes rendez-vous </button>
       {/* Consultations */}
       <h3>Consultations</h3>
       {consultations.length > 0 ? (

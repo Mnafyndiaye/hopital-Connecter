@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const {User, Medecin, PatientMedecin, Patient} = require('../models');
 const { authenticate, authorizeRole } = require('../middlewares/authMiddleware');
+
 const bcrypt = require('bcrypt');
 
 // Créer un médecin (admin uniquement)
@@ -35,7 +36,7 @@ router.post('/', authenticate, authorizeRole('admin'), async (req, res) => {
 });
 
 // GET /api/medecins — admin et assistant uniquement
-router.get('/', authenticate, authorizeRole('admin', 'assistant'), async (req, res) => {
+router.get('/', authenticate, async (req, res) => {
   const medecins = await Medecin.findAll({ include: ['User'] });
   res.json(medecins);
 });

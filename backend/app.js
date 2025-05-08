@@ -14,5 +14,5 @@ app.use('/api/auth', require('./routes/authRoutes'));
 app.use('/api/patient', require('./routes/patientDashboard'));
 app.use('/api/medical', require('./routes/medicalRecordRoutes'));
 app.use('/api/orthanc', require('./routes/orthancRoutes'));
-
+app.use('/api/rendezvous', require('./routes/rendezVousRoutes.js'));
 module.exports = app;
