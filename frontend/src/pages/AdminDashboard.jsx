@@ -1,7 +1,21 @@
 import { useState, useEffect } from 'react';
-import '../styles/AdminDashboard.css'; // Assurez-vous d'avoir ce fichier CSS pour le style
+import {
+  Container,
+  Typography,
+  Button,
+  TextField,
+  Box,
+  Grid,
+  Paper,
+  ToggleButton,
+  ToggleButtonGroup,
+  Divider,
+  List,
+  ListItem,
+  ListItemText
+} from '@mui/material';
 
-function AdminDashboard() {
+export default function AdminDashboard() {
   const [formType, setFormType] = useState('medecin');
   const [formData, setFormData] = useState({});
   const [assistants, setAssistants] = useState([]);
@@ -13,7 +27,6 @@ function AdminDashboard() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const endpoint = formType === 'medecin' ? '/api/medecins' : '/api/assistants';
-
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(endpoint, {
@@ -38,13 +51,11 @@ function AdminDashboard() {
   const fetchUsers = async () => {
     const token = localStorage.getItem('token');
     const headers = { Authorization: `Bearer ${token}` };
-
     try {
       const [resA, resM] = await Promise.all([
         fetch('/api/assistants', { headers }),
         fetch('/api/medecins', { headers }),
       ]);
-
       setAssistants(await resA.json());
       setMedecins(await resM.json());
     } catch (err) {
@@ -57,62 +68,90 @@ function AdminDashboard() {
   }, []);
 
   return (
-    <div className="admin-container">
-      <h2>Ajouter un {formType === 'medecin' ? 'médecin' : 'assistant médical'}</h2>
+    <Container maxWidth="md" sx={{ py: 5 }}>
+      <Typography variant="h4" gutterBottom>
+        Tableau de bord Admin
+      </Typography>
 
-      <div className="toggle-buttons">
-        <button
-          className={formType === 'medecin' ? 'active' : ''}
-          onClick={() => setFormType('medecin')}
+      <Box sx={{ mb: 3 }}>
+        <ToggleButtonGroup
+          value={formType}
+          exclusive
+          onChange={(e, value) => value && setFormType(value)}
+          aria-label="Choisir le type"
         >
-          Ajouter Médecin
-        </button>
-        <button
-          className={formType === 'assistant' ? 'active' : ''}
-          onClick={() => setFormType('assistant')}
-        >
-          Ajouter Assistant
-        </button>
-      </div>
+          <ToggleButton value="medecin">Médecin</ToggleButton>
+          <ToggleButton value="assistant">Assistant</ToggleButton>
+        </ToggleButtonGroup>
+      </Box>
 
-      <form className="user-form" onSubmit={handleSubmit}>
-        <input name="username" placeholder="Nom d'utilisateur" required onChange={handleChange} />
-        <input type="password" name="password" placeholder="Mot de passe" required onChange={handleChange} />
-        <input name="nom" placeholder="Nom" required onChange={handleChange} />
-        <input name="prenom" placeholder="Prénom" required onChange={handleChange} />
-        <input name="telephone" placeholder="Téléphone" required onChange={handleChange} />
-        <input name="email" placeholder="Email (facultatif)" onChange={handleChange} />
-        <input name="adresse" placeholder="Adresse" onChange={handleChange} />
+      <Paper sx={{ p: 3, mb: 4 }} elevation={3}>
+        <Typography variant="h6" gutterBottom>
+          Ajouter un {formType === 'medecin' ? 'médecin' : 'assistant'}
+        </Typography>
+        <form onSubmit={handleSubmit}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField name="username" label="Nom d'utilisateur" fullWidth required onChange={handleChange} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField name="password" label="Mot de passe" type="password" fullWidth required onChange={handleChange} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField name="nom" label="Nom" fullWidth required onChange={handleChange} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField name="prenom" label="Prénom" fullWidth required onChange={handleChange} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField name="telephone" label="Téléphone" fullWidth required onChange={handleChange} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField name="email" label="Email" fullWidth onChange={handleChange} />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField name="adresse" label="Adresse" fullWidth onChange={handleChange} />
+            </Grid>
 
-        {formType === 'medecin' && (
-          <>
-            <input name="specialite" placeholder="Spécialité" required onChange={handleChange} />
-            <input name="numeroSS" placeholder="Numéro de sécurité sociale" required onChange={handleChange} />
-          </>
-        )}
+            {formType === 'medecin' && (
+              <>
+                <Grid item xs={12} sm={6}>
+                  <TextField name="specialite" label="Spécialité" fullWidth required onChange={handleChange} />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <TextField name="numeroSS" label="N° Sécurité Sociale" fullWidth required onChange={handleChange} />
+                </Grid>
+              </>
+            )}
+          </Grid>
 
-        <button type="submit" className="submit-button">Enregistrer</button>
-      </form>
+          <Box sx={{ mt: 3 }}>
+            <Button type="submit" variant="contained" color="primary">
+              Enregistrer
+            </Button>
+          </Box>
+        </form>
+      </Paper>
 
-      <div className="list-section">
-        <h3>Médecins enregistrés</h3>
-        <ul>
-          {medecins.map((m) => (
-            <li key={m.id}>{m.nom} {m.prenom} – {m.specialite}</li>
-          ))}
-        </ul>
-      </div>
+      <Divider sx={{ mb: 3 }} />
 
-      <div className="list-section">
-        <h3>Assistants médicaux</h3>
-        <ul>
-          {assistants.map((a) => (
-            <li key={a.id}>{a.nom} {a.prenom} – {a.telephone}</li>
-          ))}
-        </ul>
-      </div>
-    </div>
+      <Typography variant="h6">Médecins enregistrés</Typography>
+      <List>
+        {medecins.map((m) => (
+          <ListItem key={m.id}>
+            <ListItemText primary={`Dr ${m.nom} ${m.prenom}`} secondary={m.specialite} />
+          </ListItem>
+        ))}
+      </List>
+
+      <Typography variant="h6" sx={{ mt: 4 }}>Assistants médicaux</Typography>
+      <List>
+        {assistants.map((a) => (
+          <ListItem key={a.id}>
+            <ListItemText primary={`${a.nom} ${a.prenom}`} secondary={a.telephone} />
+          </ListItem>
+        ))}
+      </List>
+    </Container>
   );
 }
-
-export default AdminDashboard;
