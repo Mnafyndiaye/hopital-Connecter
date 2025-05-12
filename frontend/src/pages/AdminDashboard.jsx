@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
+import '../styles/AdminDashboard.css'; // Assurez-vous d'avoir ce fichier CSS pour le style
 
 function AdminDashboard() {
-  const [formType, setFormType] = useState('medecin'); // ou 'assistant'
+  const [formType, setFormType] = useState('medecin');
   const [formData, setFormData] = useState({});
   const [assistants, setAssistants] = useState([]);
   const [medecins, setMedecins] = useState([]);
@@ -11,8 +12,8 @@ function AdminDashboard() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     const endpoint = formType === 'medecin' ? '/api/medecins' : '/api/assistants';
+
     try {
       const token = localStorage.getItem('token');
       const res = await fetch(endpoint, {
@@ -28,8 +29,6 @@ function AdminDashboard() {
       if (!res.ok) throw new Error(data.error);
       alert(`${formType === 'medecin' ? 'Médecin' : 'Assistant'} ajouté avec succès`);
       setFormData({});
-
-      // Recharger les listes après ajout
       fetchUsers();
     } catch (err) {
       alert('Erreur : ' + err.message);
@@ -46,11 +45,8 @@ function AdminDashboard() {
         fetch('/api/medecins', { headers }),
       ]);
 
-      const dataA = await resA.json();
-      const dataM = await resM.json();
-
-      setAssistants(dataA);
-      setMedecins(dataM);
+      setAssistants(await resA.json());
+      setMedecins(await resM.json());
     } catch (err) {
       alert('Erreur de chargement : ' + err.message);
     }
@@ -61,13 +57,25 @@ function AdminDashboard() {
   }, []);
 
   return (
-    <div>
+    <div className="admin-container">
       <h2>Ajouter un {formType === 'medecin' ? 'médecin' : 'assistant médical'}</h2>
 
-      <button onClick={() => setFormType('medecin')}>Ajouter Médecin</button>
-      <button onClick={() => setFormType('assistant')}>Ajouter Assistant</button>
+      <div className="toggle-buttons">
+        <button
+          className={formType === 'medecin' ? 'active' : ''}
+          onClick={() => setFormType('medecin')}
+        >
+          Ajouter Médecin
+        </button>
+        <button
+          className={formType === 'assistant' ? 'active' : ''}
+          onClick={() => setFormType('assistant')}
+        >
+          Ajouter Assistant
+        </button>
+      </div>
 
-      <form onSubmit={handleSubmit} style={{ marginTop: '20px' }}>
+      <form className="user-form" onSubmit={handleSubmit}>
         <input name="username" placeholder="Nom d'utilisateur" required onChange={handleChange} />
         <input type="password" name="password" placeholder="Mot de passe" required onChange={handleChange} />
         <input name="nom" placeholder="Nom" required onChange={handleChange} />
@@ -83,22 +91,26 @@ function AdminDashboard() {
           </>
         )}
 
-        <button type="submit">Enregistrer</button>
+        <button type="submit" className="submit-button">Enregistrer</button>
       </form>
 
-      <h3>Médecins enregistrés</h3>
-      <ul>
-        {medecins.map((m) => (
-          <li key={m.id}>{m.nom} {m.prenom} – {m.specialite}</li>
-        ))}
-      </ul>
+      <div className="list-section">
+        <h3>Médecins enregistrés</h3>
+        <ul>
+          {medecins.map((m) => (
+            <li key={m.id}>{m.nom} {m.prenom} – {m.specialite}</li>
+          ))}
+        </ul>
+      </div>
 
-      <h3>Assistants médicaux</h3>
-      <ul>
-        {assistants.map((a) => (
-          <li key={a.id}>{a.nom} {a.prenom} – {a.telephone}</li>
-        ))}
-      </ul>
+      <div className="list-section">
+        <h3>Assistants médicaux</h3>
+        <ul>
+          {assistants.map((a) => (
+            <li key={a.id}>{a.nom} {a.prenom} – {a.telephone}</li>
+          ))}
+        </ul>
+      </div>
     </div>
   );
 }
