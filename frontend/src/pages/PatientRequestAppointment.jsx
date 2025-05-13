@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import '../styles/PatientRequestAppointment.css';
+import { Box, Typography, TextField, MenuItem, Button, Alert, Paper } from '@mui/material';
+import PatientSidebar from '../components/PatientSidebar';
 
 const PatientRequestAppointment = () => {
   const [doctors, setDoctors] = useState([]);
@@ -25,22 +26,19 @@ const PatientRequestAppointment = () => {
         });
         setPatientId(resPatient.data.id);
       } catch (err) {
-        console.error('Erreur lors du chargement des données :', err.response?.data || err.message);
+        console.error('Erreur chargement :', err.response?.data || err.message);
         setMessage("Erreur lors du chargement des données.");
       }
     };
-
     fetchData();
   }, []);
 
   const handleSubmit = async () => {
     const token = localStorage.getItem('token');
-
     if (!selectedDoctorId || !date || !time || !reason || !patientId) {
       setMessage("Veuillez remplir tous les champs.");
       return;
     }
-
     try {
       const response = await axios.post(
         'http://localhost:5000/api/rendezvous',
@@ -54,8 +52,6 @@ const PatientRequestAppointment = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
-
-      console.log('Réponse backend :', response.data);
       setMessage('✅ Demande de rendez-vous envoyée avec succès.');
       setSelectedDoctorId('');
       setDate('');
@@ -68,49 +64,71 @@ const PatientRequestAppointment = () => {
   };
 
   return (
-    <div className="appointment-request-container">
-      <h2>Demande de rendez-vous</h2>
+    <Box display="flex">
+      <PatientSidebar />
+      <Box flex={1} p={4}>
+        <Typography variant="h5" gutterBottom>
+          Demande de rendez-vous
+        </Typography>
+        <Paper elevation={3} sx={{ p: 3, maxWidth: 500 }}>
+          <TextField
+            fullWidth
+            select
+            label="Médecin"
+            value={selectedDoctorId}
+            onChange={(e) => setSelectedDoctorId(e.target.value)}
+            margin="normal"
+          >
+            <MenuItem value="">-- Choisir un médecin --</MenuItem>
+            {doctors.map((doc) => (
+              <MenuItem key={doc.id} value={doc.id}>
+                Dr {doc.prenom} {doc.nom}
+              </MenuItem>
+            ))}
+          </TextField>
 
-      <div className="form-group">
-        <label>Médecin</label>
-        <select value={selectedDoctorId} onChange={(e) => setSelectedDoctorId(e.target.value)}>
-          <option value="">-- Choisir un médecin --</option>
-          {doctors.map((doc) => (
-            <option key={doc.id} value={doc.id}>
-              Dr {doc.prenom} {doc.nom}
-            </option>
-          ))}
-        </select>
-      </div>
+          <TextField
+            fullWidth
+            type="date"
+            label="Date"
+            InputLabelProps={{ shrink: true }}
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            margin="normal"
+          />
 
-      <div className="form-group">
-        <label>Date</label>
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      </div>
+          <TextField
+            fullWidth
+            type="time"
+            label="Heure"
+            InputLabelProps={{ shrink: true }}
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            margin="normal"
+          />
 
-      <div className="form-group">
-        <label>Heure</label>
-        <input type="time" value={time} onChange={(e) => setTime(e.target.value)} />
-      </div>
+          <TextField
+            fullWidth
+            label="Motif"
+            multiline
+            rows={4}
+            value={reason}
+            onChange={(e) => setReason(e.target.value)}
+            margin="normal"
+          />
 
-      <div className="form-group">
-        <label>Motif</label>
-        <textarea value={reason} onChange={(e) => setReason(e.target.value)} />
-      </div>
+          <Button variant="contained" color="primary" onClick={handleSubmit} fullWidth>
+            Envoyer la demande
+          </Button>
 
-      <button className="primary-button" onClick={handleSubmit}>
-        Envoyer la demande
-      </button>
-
-      {message && (
-        <div
-          className="message"
-          style={{ marginTop: '10px', color: message.startsWith('✅') ? 'green' : 'red' }}
-        >
-          {message}
-        </div>
-      )}
-    </div>
+          {message && (
+            <Alert severity={message.startsWith('✅') ? 'success' : 'error'} sx={{ mt: 2 }}>
+              {message}
+            </Alert>
+          )}
+        </Paper>
+      </Box>
+    </Box>
   );
 };
 

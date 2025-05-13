@@ -1,9 +1,21 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import {
+  Typography,
+  Button,
+  List,
+  ListItem,
+  ListItemText,
+  Box,
+  Link,
+  Divider
+} from '@mui/material';
+import MedecinSidebar from '../components/MedecinSidebar';
 
 const MedecinDashboard = () => {
   const [patients, setPatients] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     fetchPatients();
@@ -13,42 +25,54 @@ const MedecinDashboard = () => {
     try {
       const token = localStorage.getItem('token');
       const res = await axios.get('http://localhost:5000/api/medecins/patients', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${token}` },
       });
       setPatients(res.data);
     } catch (error) {
       console.error("Erreur récupération patients :", error.response?.data || error.message);
     }
   };
-  const navigate = useNavigate();
+
   return (
-    <div>
-      <h2>Tableau de bord du Médecin</h2>
-      <button onClick={() => navigate('/medecin/appointments')} style={{
-          marginTop: '10px',
-          padding: '10px 20px',
-          backgroundColor: '#2563eb',
-          color: 'white',
-          border: 'none',
-          borderRadius: '8px',
-          cursor: 'pointer'
-      }}> Voir mes rendez-vous </button>
-      <h3>Liste des patients</h3>
-      {patients.length === 0 ? (
-        <p>Aucun patient disponible</p>
-      ) : (
-        <ul>
-          {patients.map((patient) => (
-            <li key={patient.id}>
-              {patient.firstName} {patient.lastName} — {patient.phoneNumber}
-              <a href={`/medecin/patient/${patient.id}`}>Voir dossier médical</a>
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+    <MedecinSidebar>
+      <Box sx={{ p: 3 }}>
+        <Typography variant="h4" gutterBottom>
+          Tableau de bord du Médecin
+        </Typography>
+
+        <Typography variant="h5" gutterBottom>
+          Liste des patients
+        </Typography>
+
+        {patients.length === 0 ? (
+          <Typography>Aucun patient disponible</Typography>
+        ) : (
+          <List>
+            {patients.map((patient) => (
+              <React.Fragment key={patient.id}>
+                <ListItem alignItems="flex-start">
+                  <ListItemText
+                    primary={`${patient.firstName} ${patient.lastName}`}
+                    secondary={
+                      <>
+                        <Typography component="span" variant="body2">
+                          Téléphone : {patient.phoneNumber}
+                        </Typography>
+                        <br />
+                        <Link href={`/medecin/patient/${patient.id}`} underline="hover">
+                          Voir dossier médical
+                        </Link>
+                      </>
+                    }
+                  />
+                </ListItem>
+                <Divider component="li" />
+              </React.Fragment>
+            ))}
+          </List>
+        )}
+      </Box>
+    </MedecinSidebar>
   );
 };
 
