@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Box, Typography, TextField, MenuItem, Button, Alert, Paper } from '@mui/material';
+import {
+  Box,
+  Typography,
+  TextField,
+  MenuItem,
+  Button,
+  Alert,
+  Paper,
+} from '@mui/material';
 import PatientSidebar from '../components/PatientSidebar';
 
 const PatientRequestAppointment = () => {
@@ -27,20 +35,30 @@ const PatientRequestAppointment = () => {
         setPatientId(resPatient.data.id);
       } catch (err) {
         console.error('Erreur chargement :', err.response?.data || err.message);
-        setMessage("Erreur lors du chargement des données.");
+        setMessage("❌ Erreur lors du chargement des données.");
       }
     };
     fetchData();
   }, []);
 
+  // Auto-hide alert after 4 seconds
+  useEffect(() => {
+    if (message) {
+      const timeout = setTimeout(() => setMessage(''), 4000);
+      return () => clearTimeout(timeout);
+    }
+  }, [message]);
+
   const handleSubmit = async () => {
     const token = localStorage.getItem('token');
+
     if (!selectedDoctorId || !date || !time || !reason || !patientId) {
-      setMessage("Veuillez remplir tous les champs.");
+      setMessage("❌ Veuillez remplir tous les champs.");
       return;
     }
+
     try {
-      const response = await axios.post(
+      await axios.post(
         'http://localhost:5000/api/rendezvous',
         {
           patientId,
@@ -70,6 +88,7 @@ const PatientRequestAppointment = () => {
         <Typography variant="h5" gutterBottom>
           Demande de rendez-vous
         </Typography>
+
         <Paper elevation={3} sx={{ p: 3, maxWidth: 500 }}>
           <TextField
             fullWidth
@@ -117,12 +136,22 @@ const PatientRequestAppointment = () => {
             margin="normal"
           />
 
-          <Button variant="contained" color="primary" onClick={handleSubmit} fullWidth>
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={handleSubmit}
+            fullWidth
+            sx={{ mt: 2 }}
+          >
             Envoyer la demande
           </Button>
 
           {message && (
-            <Alert severity={message.startsWith('✅') ? 'success' : 'error'} sx={{ mt: 2 }}>
+            <Alert
+              key={message}
+              severity={message.startsWith('✅') ? 'success' : 'error'}
+              sx={{ mt: 2 }}
+            >
               {message}
             </Alert>
           )}

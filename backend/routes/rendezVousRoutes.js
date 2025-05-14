@@ -2,92 +2,124 @@ const express = require('express');
 const router = express.Router();
 const { RendezVous, Patient, Medecin } = require('../models');
 
-// Créer une demande de rendez-vous (par patient)
+// ────────────── 📌 PATIENT ──────────────
+
+// Créer une demande de rendez-vous (Patient)
 router.post('/', async (req, res) => {
   try {
-    console.log('Corps de la requête reçue :', req.body);
     const { date, motif, patientId, medecinId } = req.body;
-    const rendezVous = await RendezVous.create({ date, motif, patientId, medecinId });
+    const rendezVous = await RendezVous.create({
+      date,
+      motif,
+      patientId,
+      medecinId,
+      statut: 'en attente',
+    });
     res.status(201).json(rendezVous);
   } catch (err) {
-    console.error('Erreur création rendez-vous :', err);
-    res.status(500).json({ error: 'Erreur lors de la création du rendez-vous', details: err.message });
+    res.status(500).json({ error: 'Erreur création rendez-vous', details: err.message });
   }
 });
 
-// Obtenir tous les rendez-vous d'un médecin
-router.get('/medecin/:id', async (req, res) => {
-  try {
-    const rendezVous = await RendezVous.findAll({
-      where: { medecinId: req.params.id },
-      include: ['patient']
-    });
-    res.json(rendezVous);
-  } catch (err) {
-    res.status(500).json({ error: 'Erreur lors de la récupération des rendez-vous' });
-  }
-});
-
-// Obtenir tous les rendez-vous d'un patient
+// Voir les rendez-vous d’un patient
 router.get('/patient/:id', async (req, res) => {
   try {
     const rendezVous = await RendezVous.findAll({
       where: { patientId: req.params.id },
-      include: ['medecin']
+      include: [
+        { model: Medecin, as: 'medecin', attributes: ['id', 'prenom', 'nom'] }
+      ],
+      order: [['date', 'DESC']],
     });
     res.json(rendezVous);
   } catch (err) {
-    res.status(500).json({ error: 'Erreur lors de la récupération des rendez-vous' });
+    res.status(500).json({ error: 'Erreur récupération rendez-vous du patient' });
   }
 });
 
-// Modifier un rendez-vous (statut ou date)
-router.put('/:id', async (req, res) => {
+// ────────────── 📌 MEDECIN ──────────────
+
+// Voir les rendez-vous d’un médecin
+router.get('/medecin/:id', async (req, res) => {
   try {
-    const { date, statut } = req.body;
-    const rendezVous = await RendezVous.findByPk(req.params.id);
-    if (!rendezVous) return res.status(404).json({ error: 'Rendez-vous non trouvé' });
+    const { statut } = req.query;
+    const whereClause = { medecinId: req.params.id };
+    if (statut) whereClause.statut = statut;
 
-    if (date) rendezVous.date = date;
-    if (statut) rendezVous.statut = statut;
-
-    await rendezVous.save();
-
-    // TODO: envoyer notification (email ou autre)
+    const rendezVous = await RendezVous.findAll({
+      where: whereClause,
+      include: [
+        { model: Patient, as: 'patient', attributes: ['id', 'firstName', 'lastName'] }
+      ],
+      order: [['date', 'DESC']],
+    });
     res.json(rendezVous);
   } catch (err) {
-    res.status(500).json({ error: 'Erreur lors de la mise à jour du rendez-vous' });
+    res.status(500).json({ error: 'Erreur récupération rendez-vous du médecin' });
   }
 });
 
-// Récupérer les rendez-vous en attente (statut : 'planifié' ou autre)
+// Mettre à jour le statut (terminé ou annulé) par le médecin
+router.put('/:id/statut', async (req, res) => {
+  try {
+    const { statut } = req.body;
+    const rendezVous = await RendezVous.findByPk(req.params.id);
+
+    if (!rendezVous) {
+      return res.status(404).json({ error: 'Rendez-vous non trouvé' });
+    }
+
+    if (!['terminé', 'annulé'].includes(statut)) {
+      return res.status(400).json({ error: 'Statut invalide pour le médecin' });
+    }
+
+    rendezVous.statut = statut;
+    await rendezVous.save();
+
+    res.json({ message: 'Statut mis à jour', rendezVous });
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur mise à jour statut' });
+  }
+});
+
+// ────────────── 📌 ASSISTANT ──────────────
+
+// Voir les rendez-vous en attente
 router.get('/pending', async (req, res) => {
   try {
     const rendezVous = await RendezVous.findAll({
       where: { statut: 'en attente' },
-      attributes: ['id', 'date', 'statut', 'motif'], // On inclut ici la date
       include: [
-        {
-          model: Patient,
-          as: 'patient',
-          attributes: ['id', 'firstName', 'lastName'] // On inclut ici les attributs du patient
-        },
-        {
-          model: Medecin,
-          as: 'medecin',
-          attributes: ['id', 'prenom', 'nom']
-        }
-      ]
+        { model: Patient, as: 'patient', attributes: ['id', 'firstName', 'lastName'] },
+        { model: Medecin, as: 'medecin', attributes: ['id', 'prenom', 'nom'] }
+      ],
+      order: [['date', 'ASC']],
     });
     res.json(rendezVous);
   } catch (err) {
-    console.error('Erreur récupération rendez-vous en attente :', err);
     res.status(500).json({ error: 'Erreur récupération rendez-vous en attente' });
   }
 });
 
-// Assigner un médecin et programmer un rendez-vous
-router.put('/:id/schedule', async (req, res) => {
+// Planifier un rendez-vous (changer statut uniquement)
+router.put('/:id/planifier', async (req, res) => {
+  try {
+    const rendezVous = await RendezVous.findByPk(req.params.id);
+    if (!rendezVous) {
+      return res.status(404).json({ error: 'Rendez-vous non trouvé' });
+    }
+
+    rendezVous.statut = 'planifié';
+    await rendezVous.save();
+
+    res.json({ message: 'Rendez-vous planifié', rendezVous });
+  } catch (err) {
+    res.status(500).json({ error: 'Erreur lors de la planification' });
+  }
+});
+
+// Reprogrammer un rendez-vous (changer date, heure ou médecin)
+router.put('/:id/reprogrammer', async (req, res) => {
   try {
     const { date, medecinId } = req.body;
     const rendezVous = await RendezVous.findByPk(req.params.id);
@@ -96,18 +128,15 @@ router.put('/:id/schedule', async (req, res) => {
       return res.status(404).json({ error: 'Rendez-vous non trouvé' });
     }
 
-    // Formatage de la date et de l'heure en UTC (si nécessaire)
-    const scheduledDate = new Date(`${date}T00:00:00Z`);
+    if (date) rendezVous.date = new Date(date);
+    if (medecinId) rendezVous.medecinId = medecinId;
 
-    rendezVous.date = scheduledDate;
-    rendezVous.medecinId = medecinId;
-    rendezVous.statut = 'planifié';
-
+    rendezVous.statut = 'reprogrammé';
     await rendezVous.save();
-    res.json({ message: 'Rendez-vous programmé', rendezVous });
+
+    res.json({ message: 'Rendez-vous reprogrammé', rendezVous });
   } catch (err) {
-    console.error('Erreur programmation rendez-vous :', err);
-    res.status(500).json({ error: 'Erreur programmation rendez-vous' });
+    res.status(500).json({ error: 'Erreur lors de la reprogrammation', details: err.message });
   }
 });
 
